@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-container1
+  labels:
+    app: container1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: container1
+  template:
+    metadata:
+      labels:
+        app: container1
+    spec:
+      containers:
+      - name: k8s-container1
+        image: us-east1-docker.pkg.dev/csci-5409-427620/k8s/container1:latest
+        ports:
+          - containerPort: 80
+        volumeMounts:
+        - mountPath: /Tanuj_PV_dir
+          name: k8s-volume 
+      volumes:
+        - name: k8s-volume 
+          persistentVolumeClaim:
+            claimName: k8s-pvc
+      

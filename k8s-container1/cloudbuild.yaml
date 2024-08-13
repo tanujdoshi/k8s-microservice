@@ -1,0 +1,41 @@
+steps:
+# Step 1: Building docker image
+- id: Build
+  name: "gcr.io/cloud-builders/docker"
+  entrypoint: "bash"
+  args:
+    - "-c"
+    - |
+      echo "Docker build image"
+      docker build -t ${_IMAGE_NAME}:$SHORT_SHA -t  ${_IMAGE_NAME}:latest .
+      echo "Done - Docker image build"
+
+# Step 2: Push the Docker image
+- id: Push
+  name: "gcr.io/cloud-builders/docker"
+  entrypoint: "bash"
+  args:
+    - "-c"
+    - |
+      echo "Push docker image"
+      docker push --all-tags ${_IMAGE_NAME}
+      echo "Done - Docker image push"
+
+# Step 3: Deploy to GKE, 
+# Reference : https://cloud.google.com/build/docs/deploying-builds/deploy-gke 
+- id: Deploy
+  name: "gcr.io/cloud-builders/gke-deploy"
+  args:
+  - run
+  - --filename=./k8s
+  - --image=${_IMAGE_NAME}:$SHORT_SHA
+  - --location=${_CLUSTER_LOCATION}
+  - --cluster=${_CLUSTER_NAME}
+
+substitutions:
+  _IMAGE_NAME: 'us-east1-docker.pkg.dev/csci-5409-427620/k8s/container1'
+  _CLUSTER_LOCATION: 'us-east1-c'
+  _CLUSTER_NAME: 'k8s-cluster'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
